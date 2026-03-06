@@ -57,18 +57,24 @@ function api_buildurl(endpoint, query = nothing, database = nothing, extension =
     verbose = get(ENV, "epi_verbose", "false") == "true"
     silent = get(ENV, "epi_silent", "false") == "true"
 
-    built_url = join([server, "epi", database, endpoint], "/") * "?" * token
-
+    # begin hotfix 2026-03-06
+    built_url = join([server, "epi", database, endpoint], "/") *
+        "." * extension *
+        "?" * token
+    
     if verbose && !silent
         println(built_url)
     end
 
     return built_url
-    
+    # end hotfix
 
-    url = HTTP.URI(server, query="token=" * token)
 
-    # TODO use URI.jl?
+    # TODO 2026-03-06 URI is an immutable struct!
+    url = URI(server)
+    url.query = Dict("token" => token)
+
+
     if !isnothing(query)
         for (k, v) in query
             url.query[k] = v
@@ -270,6 +276,7 @@ function api_table(endpoint, params = Dict(), db = nothing, maxpages = 1, silent
     verbose = get(ENV, "epi_verbose", "false") == "true"
 
     data = DataFrame()
+    rows = DataFrame()
     page = 1
 
     fetchmore = true
@@ -295,7 +302,7 @@ function api_table(endpoint, params = Dict(), db = nothing, maxpages = 1, silent
 
             if resp.status == 200
                 body = String(resp.body)
-                rows = CSV.read(IOBuffer(body), delim = ';')
+                rows = CSV.read(IOBuffer(body), delim = ';', DataFrame)
             elseif resp.status == 404
                 message = "No more data found."
                 rows = DataFrame()
@@ -557,6 +564,10 @@ Arguments:
 - source: A named vector of source parameters, containing endpoint, parameters and database name
 """
 function to_epitable(data, source = nothing)
+    # begin hotfix 2026-03-06
+    return data
+    # end hotfix
+    
     if !isnothing(source)
         data.source = source
     end

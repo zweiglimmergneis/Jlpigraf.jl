@@ -87,7 +87,7 @@ function db_fetch(table, params = Dict(), db = nothing)
 end
 
 """
-    fetch_table(table, columns = [], params = Dict(), db = nothing, maxpages = 1)
+    fetch_table(table; columns = [], params = Dict(), db = nothing, maxpages = 1)
 
 Fetch tables such as articles, projects or properties
 
@@ -101,7 +101,7 @@ Arguments:
 - db: The database name
 - maxpages: Maximum number of pages to request. Set to 1 for non-paginated tables.
 """
-function fetch_table(table, columns = [], params = Dict(), db = nothing, maxpages = 1)
+function fetch_table(table; columns = [], params = Dict(), db = nothing, maxpages = 1)
     columns = unique(vcat(["id"], columns))
     columns_str = join(columns, ",")
     params["columns"] = columns_str
